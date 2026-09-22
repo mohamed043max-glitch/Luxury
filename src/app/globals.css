@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #faf8f2;
+  --color-cream-deep: #f3eee3;
+  --color-parchment: #ece5d5;
+  --color-line: #e2dbc9;
+  --color-line-dark: #2b2e36;
+  --color-ink: #1a1d24;
+  --color-ink-soft: #54585f;
+  --color-mist: #8f9299;
+  --color-charcoal: #14161b;
+  --color-charcoal-soft: #1c1f26;
+  --color-gold: #d4af37;
+  --color-gold-deep: #a8872a;
+  --color-gold-pale: #e9dcae;
+
+  --font-display: "Cormorant Garamond", "Times New Roman", Georgia, serif;
+  --font-sans: "Jost", "Avenir Next", "Century Gothic", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-gold);
+  color: var(--color-charcoal);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: #cfc5a9;
+  border: 2px solid var(--color-cream-deep);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 1px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1) translateY(0);
+  }
+  to {
+    transform: scale(1.08) translateY(-1.5%);
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 38s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+.animate-kenburns {
+  animation: kenburns 24s ease-in-out infinite alternate;
+}
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+/* Unified products grid — locked to 3 columns on every screen
+   (mobile, tablet, laptop, desktop) so the layout never shifts
+   between breakpoints. Plain 1fr tracks + gap shorthand keep track
+   sizing trivial for mobile browsers; gaps alone widen by viewport. */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem 0.75rem;
+}
+@media (min-width: 640px) {
+  .products-grid {
+    gap: 2.5rem 1.25rem;
+  }
+}
+@media (min-width: 768px) {
+  .products-grid {
+    gap: 3.5rem 2rem;
+  }
+}
+
+/* Product card scroll performance: the browser skips layout, style,
+   paint and raster for off-screen cards entirely (no heavy reflow
+   while scrolling), reserving an estimated height to avoid jumps. */
+.product-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}
+
+/* Independent product row carousels — each row is a native horizontal
+   scroller driven only by its own arrows (see ProductRowCarousel).
+   Hidden scrollbars, smooth behavior, gentle proximity snap so native
+   touch swipes and arrow clicks never fight each other. */
+.product-row-scroll {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  padding-bottom: 0.25rem;
+}
+.product-row-scroll::-webkit-scrollbar {
+  display: none;
+}
+.product-row-scroll:focus-visible {
+  outline: 1px solid var(--color-gold);
+  outline-offset: 4px;
+}
+/* Cards keep a stable width per breakpoint so ~1.5 / ~2 / ~3 cards show
+   with a peek of the next — the affordance that a row scrolls. */
+.product-row-card {
+  flex: 0 0 62%;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+@media (min-width: 640px) {
+  .product-row-scroll {
+    gap: 1.25rem;
+  }
+  .product-row-card {
+    flex-basis: 44%;
+  }
+}
+@media (min-width: 1024px) {
+  .product-row-scroll {
+    gap: 2rem;
+  }
+  .product-row-card {
+    flex-basis: 31.5%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-row-scroll {
+    scroll-behavior: auto;
+  }
+}
+
+/* Hover-only dressing is gated to real pointers: touch devices never
+   create the extra transition layers, gradient veils or image zoom,
+   so scrolling the grid stays on the fast compositor path. */
+.card-veil {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .product-card .card-zoom {
+    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .product-card:hover .card-zoom {
+    transform: scale(1.06);
+  }
+  .card-veil {
+    display: block;
+    transform: translateY(100%);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .product-card:hover .card-veil {
+    transform: translateY(0);
+  }
+}
+
+/* Luxury button sheen sweep */
+.btn-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.btn-sheen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -80%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255, 253, 244, 0.55),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-sheen:hover::after {
+  left: 130%;
+}
