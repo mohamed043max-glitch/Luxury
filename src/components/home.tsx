@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { COLLECTIONS, HERO_IMAGE, ATELIER_FITTING, countForCategory } from "@/lib/products";
+import { motion, AnimatePresence } from "framer-motion";
+import { COLLECTIONS, HERO_VIDEO, HERO_VIDEO_POSTER, HERO_FREEZE, ATELIER_FITTING, countForCategory } from "@/lib/products";
 import { IconArrowRight, IconArrowUpRight } from "./icons";
 import { cx } from "@/lib/utils";
 
@@ -57,18 +57,139 @@ export function Eyebrow({
   );
 }
 
+function heroScene(progress: number): { act: string; caption: string } {
+  if (progress < 0.32) return { act: "Act I", caption: "The Slow Drag" };
+  if (progress < 0.68) return { act: "Act II", caption: "The Exhale" };
+  return { act: "Act III", caption: "Hands Lowered" };
+}
+
 export function Hero() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [failed, setFailed] = useState(false);
+
+  // Force autoplay: React's `muted` prop alone doesn't set the DOM property
+  // that browsers check, so set it imperatively + call play() on mount.
+  // This runs for every visitor, so the hero always moves in preview.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || failed) return;
+    v.muted = true;
+    v.defaultMuted = true;
+    const attempt = () => {
+      void v
+        .play()
+        .then(() => setPlaying(true))
+        .catch(() => {
+          // Autoplay blocked (strict policy) → retry once on first touch.
+          const retry = () => {
+            void v.play().then(() => setPlaying(true)).catch(() => {});
+            window.removeEventListener("touchstart", retry);
+            window.removeEventListener("click", retry);
+          };
+          window.addEventListener("touchstart", retry, { once: true });
+          window.addEventListener("click", retry, { once: true });
+        });
+    };
+    if (v.readyState >= 2) attempt();
+    else {
+      v.addEventListener("canplay", attempt, { once: true });
+      return () => v.removeEventListener("canplay", attempt);
+    }
+  }, [failed]);
+
+  const scene = heroScene(progress);
+
   return (
     <section className="relative flex min-h-[100svh] items-end overflow-hidden bg-charcoal">
       <div className="absolute inset-0">
-        <img
-          src={HERO_IMAGE}
-          alt="A confident gentleman checking his wristwatch in bright daylight"
-          fetchPriority="high"
-          className="animate-kenburns h-full w-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal/75 via-charcoal/20 to-charcoal/10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-charcoal/40 via-transparent to-transparent" />
+        {/* Cinematic hero film — direct public MP4, Thomas Shelby style.
+            Loops forever: autoPlay + muted + loop + playsInline. */}
+        {!failed ? (
+          <video
+            ref={videoRef}
+            className="absolute inset-0 h-full w-full object-cover object-center"
+            poster={HERO_VIDEO_POSTER}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            aria-label="Cinematic looping film: Thomas Shelby style gentleman in a tailored suit on a London rooftop, taking a slow drag and exhaling smoke"
+            onPlay={() => setPlaying(true)}
+            onPlaying={() => setPlaying(true)}
+            onTimeUpdate={(e) => {
+              const v = e.currentTarget;
+              if (v.duration) setProgress(Math.min(1, v.currentTime / v.duration));
+            }}
+            onError={() => setFailed(true)}
+          >
+            <source src={HERO_VIDEO} type="video/mp4" />
+          </video>
+        ) : (
+          /* Fallback ONLY if the video file itself fails to load */
+          <img
+            src={HERO_FREEZE}
+            alt="Thomas Shelby style gentleman in a tailored three-piece suit on a London rooftop"
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover object-center"
+          />
+        )}
+
+        {/* Cinematic dressing: grain, drifting smoke, vignette, grades */}
+        <div className="hero-grain pointer-events-none absolute -inset-[5%] opacity-[0.16]" />
+        <div className="hero-smoke pointer-events-none absolute inset-0" />
+        <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/20 to-charcoal/15" />
+        <div className="absolute inset-0 bg-gradient-to-r from-charcoal/45 via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_180px_rgba(0,0,0,0.55)]" />
+
+        {/* Letterbox cinema bars */}
+        <div className="hero-letterbox absolute inset-x-0 top-0 h-10 bg-black sm:h-14" />
+        <div className="hero-letterbox absolute inset-x-0 bottom-0 h-10 bg-black sm:h-14" />
+      </div>
+
+      {/* Film HUD — top: REC / scene slate (looping film) */}
+      <div className="absolute inset-x-0 top-14 z-10 sm:top-[4.5rem]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="flex items-center gap-2.5"
+          >
+            <span className="hero-rec-dot h-2.5 w-2.5 rounded-full bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.9)]" />
+            <span className="text-[10px] font-medium uppercase tracking-[0.35em] text-alabaster/90">
+              {playing ? "● REC · 4K · LOOP" : "Loading Film"}
+            </span>
+          </motion.div>
+
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={failed ? "still" : scene.act}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="hidden text-right text-[10px] uppercase tracking-[0.35em] text-alabaster/80 sm:block"
+            >
+              {failed ? (
+                <>
+                  <span className="text-gold">Editorial Still</span>
+                  <span className="mx-2 text-alabaster/40">—</span>
+                  Hartwell · Mayfair Rooftop
+                </>
+              ) : (
+                <>
+                  <span className="text-gold">{scene.act}</span>
+                  <span className="mx-2 text-alabaster/40">—</span>
+                  {scene.caption}
+                </>
+              )}
+            </motion.p>
+          </AnimatePresence>
+        </div>
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-6 pb-24 pt-44 sm:pb-28">
@@ -86,7 +207,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 34 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.1, delay: 0.35, ease: EASE }}
-          className="mt-6 max-w-3xl font-display text-5xl font-medium leading-[1.04] text-cream sm:text-7xl lg:text-[86px]"
+          className="mt-6 max-w-3xl font-display text-5xl font-medium leading-[1.04] text-alabaster sm:text-7xl lg:text-[86px]"
         >
           Tailoring for a
           <br />
@@ -97,7 +218,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.55, ease: EASE }}
-          className="mt-7 max-w-xl text-base font-light leading-relaxed text-cream/75 sm:text-lg"
+          className="mt-7 max-w-xl text-base font-light leading-relaxed text-alabaster/75 sm:text-lg"
         >
           Modern British menswear, crafted with heritage and worn with
           confidence.
@@ -124,6 +245,33 @@ export function Hero() {
             <IconArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
           </Link>
         </motion.div>
+
+        {/* Looping film progress + scene caption */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 0.9 }}
+          className="mt-10 flex max-w-xl items-center gap-4"
+        >
+          <div className="h-px flex-1 overflow-hidden bg-alabaster/25">
+            <div
+              className="h-full bg-gold transition-[width] duration-300"
+              style={{ width: `${Math.round(progress * 100)}%` }}
+            />
+          </div>
+          <span className="shrink-0 text-[9px] uppercase tracking-[0.3em] text-alabaster/70 sm:hidden">
+            {scene.act} · {scene.caption}
+          </span>
+        </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.9, ease: EASE }}
+          className="mt-4 max-w-xl font-display text-lg italic text-gold-pale/90"
+        >
+          By order of the House — the rooftop, the drag, the smoke.
+        </motion.p>
       </div>
 
       <motion.div
@@ -132,10 +280,10 @@ export function Hero() {
         transition={{ delay: 1.4, duration: 1.2 }}
         className="absolute bottom-10 right-8 hidden flex-col items-center gap-3 lg:flex"
       >
-        <span className="text-[9px] uppercase tracking-[0.4em] text-cream/50 [writing-mode:vertical-rl]">
+        <span className="text-[9px] uppercase tracking-[0.4em] text-alabaster/50 [writing-mode:vertical-rl]">
           Scroll
         </span>
-        <span className="h-14 w-px overflow-hidden bg-cream/20">
+        <span className="h-14 w-px overflow-hidden bg-alabaster/20">
           <motion.span
             animate={{ y: [-56, 56] }}
             transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
@@ -165,7 +313,7 @@ export function Marquee() {
       {MARQUEE_ITEMS.map((item) => (
         <span
           key={item + (hidden ? "-b" : "-a")}
-          className="flex items-center gap-10 whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-cream/70"
+          className="flex items-center gap-10 whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-alabaster/70"
         >
           {item}
           <span className="text-gold">◆</span>

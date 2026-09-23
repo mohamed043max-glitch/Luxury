@@ -5,6 +5,7 @@ import "./globals.css";
 import { StoreProvider } from "@/components/store";
 import { Header, Footer, ToastViewport } from "@/components/chrome";
 import { CartDrawer, SearchOverlay } from "@/components/drawers";
+import { ThemeInitScript } from "@/components/theme-toggle";
 
 const serif = Cormorant_Garamond({
   subsets: ["latin"],
@@ -33,8 +34,9 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${serif.variable} ${sans.variable}`}>
       <body className="bg-cream font-sans text-ink antialiased">
+        <ThemeInitScript />
         <StoreProvider>
           <Header />
           <main>{children}</main>

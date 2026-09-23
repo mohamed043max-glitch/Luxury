@@ -85,6 +85,25 @@ export function IconArrowLeft({ className, strokeWidth = 1.2 }: IconProps) {
   );
 }
 
+/** High-contrast filled sun — large solid disc + thick rays for low vision. */
+export function IconSun({ className, strokeWidth = 2.2 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth}>
+      <circle cx="12" cy="12" r="4.4" fill="currentColor" stroke="none" />
+      <path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** High-contrast filled crescent moon — solid shape for low vision. */
+export function IconMoon({ className, strokeWidth = 2 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth}>
+      <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z" fill="currentColor" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function IconArrowUpRight({ className, strokeWidth = 1.2 }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={base(className)} stroke="currentColor" strokeWidth={strokeWidth}>

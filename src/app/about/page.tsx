@@ -68,12 +68,12 @@ export default function AboutPage() {
             <Eyebrow tone="cream" className="text-gold">
               Discover the House
             </Eyebrow>
-            <h1 className="mt-6 max-w-3xl font-display text-5xl font-medium leading-[1.05] text-cream sm:text-7xl">
+            <h1 className="mt-6 max-w-3xl font-display text-5xl font-medium leading-[1.05] text-alabaster sm:text-7xl">
               Ninety years,
               <br />
               <span className="italic text-gold-pale">one address, one standard.</span>
             </h1>
-            <p className="mt-7 max-w-xl text-base font-light leading-relaxed text-cream/75">
+            <p className="mt-7 max-w-xl text-base font-light leading-relaxed text-alabaster/75">
               Hartwell &amp; Co. has dressed the men of this city since 1934 —
               the barrister and the banker, the cellist and the captain. What
               has changed is the fabric. What has not is the method, the
@@ -204,18 +204,18 @@ export default function AboutPage() {
       <section className="border-t border-line bg-charcoal">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-20 sm:py-24 lg:grid-cols-3">
           <Reveal>
-            <div className="flex h-full flex-col justify-between gap-8 border border-cream/15 p-9">
+            <div className="flex h-full flex-col justify-between gap-8 border border-alabaster/15 p-9">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.35em] text-gold">
                   The Atelier
                 </p>
-                <p className="mt-4 font-display text-3xl leading-snug text-cream">
+                <p className="mt-4 font-display text-3xl leading-snug text-alabaster">
                   No. 1 Mayfair
                   <br />
                   London W1K 2QT
                 </p>
               </div>
-              <div className="flex items-start gap-3 text-sm text-cream/60">
+              <div className="flex items-start gap-3 text-sm text-alabaster/60">
                 <IconPin className="mt-0.5 h-5 w-5 text-gold" />
                 <p>
                   Two minutes from the Green Park tube.
@@ -226,35 +226,35 @@ export default function AboutPage() {
             </div>
           </Reveal>
           <Reveal delay={0.1}>
-            <div className="flex h-full flex-col justify-between gap-8 border border-cream/15 p-9">
+            <div className="flex h-full flex-col justify-between gap-8 border border-alabaster/15 p-9">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.35em] text-gold">
                   Hours
                 </p>
-                <p className="mt-4 font-display text-3xl leading-snug text-cream">
+                <p className="mt-4 font-display text-3xl leading-snug text-alabaster">
                   10:00 – 18:00
                   <br />
                   Monday to Saturday
                 </p>
               </div>
-              <p className="text-sm text-cream/60">
+              <p className="text-sm text-alabaster/60">
                 Fittings and made-to-measure consultations by appointment
                 only. The shop floor is open to all, tea included.
               </p>
             </div>
           </Reveal>
           <Reveal delay={0.2}>
-            <div className="flex h-full flex-col justify-between gap-8 border border-cream/15 p-9">
+            <div className="flex h-full flex-col justify-between gap-8 border border-alabaster/15 p-9">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.35em] text-gold">
                   The Concierge
                 </p>
-                <p className="mt-4 font-display text-3xl leading-snug text-cream">
+                <p className="mt-4 font-display text-3xl leading-snug text-alabaster">
                   +44 (0)20 7946 0934
                 </p>
               </div>
               <div>
-                <p className="text-sm text-cream/60">
+                <p className="text-sm text-alabaster/60">
                   support@hartwell-luxury.com
                 </p>
                 <Link

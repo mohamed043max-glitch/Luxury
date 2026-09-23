@@ -14,7 +14,16 @@ export type Product = {
 const px = (id: number, w = 900, h = 1200) =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=${w}&h=${h}`;
 
-export const HERO_IMAGE = px(8911894, 1920, 1280);
+export const HERO_IMAGE = px(9199098, 1920, 1280);
+
+/* Cinematic hero film — Thomas Shelby style, slow drag + exhale (UHD 4K
+   public MP4). Loops forever with autoPlay + muted + loop + playsInline. */
+export const HERO_VIDEO =
+  "https://videos.pexels.com/video-files/14500437/14500437-uhd_3840_2160_25fps.mp4";
+export const HERO_VIDEO_POSTER = px(9199098, 1920, 1280);
+
+/* Fallback still — shown ONLY if the video file itself fails to load. */
+export const HERO_FREEZE = "/images/hero-shelby-freeze.jpg";
 export const ATELIER_FITTING = px(6764997, 1600, 1000);
 export const ATELIER_CUTTING = px(17731748, 1400, 900);
 export const ATELIER_CHECK = px(6764919, 1400, 900);

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "./store";
+import { ThemeToggle } from "./theme-toggle";
 import {
   IconMenu,
   IconClose,
@@ -56,12 +57,12 @@ export function Header() {
     <>
       <header className="fixed inset-x-0 top-0 z-40">
         {/* Announcement */}
-        <div className="bg-charcoal text-cream/80">
+        <div className="bg-charcoal text-alabaster/80">
           <p className="mx-auto flex h-9 max-w-7xl items-center justify-center gap-2 px-4 text-[10px] uppercase tracking-[0.3em]">
             <span className="hidden sm:inline">
               Complimentary delivery on orders over £750
             </span>
-            <span className="hidden h-3 w-px bg-cream/30 sm:block" />
+            <span className="hidden h-3 w-px bg-alabaster/30 sm:block" />
             <span>By appointment · No. 1 Mayfair, London</span>
           </p>
         </div>
@@ -100,6 +101,7 @@ export function Header() {
 
             {/* Right — utilities */}
             <div className="flex items-center gap-1 sm:gap-2">
+              <ThemeToggle />
               <button
                 onClick={() => setSearchOpen(true)}
                 className="p-2.5 text-ink transition-colors hover:text-gold-deep"
@@ -184,6 +186,7 @@ function MenuOverlay() {
           className="fixed inset-0 z-50 flex flex-col bg-cream lg:flex-row"
         >
           <div className="absolute right-5 top-5 z-10 flex items-center gap-1 sm:right-8 sm:top-7">
+            <ThemeToggle />
             <button
               onClick={() => {
                 close();
@@ -303,20 +306,20 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-charcoal text-cream">
+    <footer className="bg-charcoal text-alabaster">
       <div className="h-px w-full bg-gradient-to-r from-transparent via-gold/70 to-transparent" />
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 sm:grid-cols-2 lg:grid-cols-12">
         <div className="lg:col-span-4">
           <p className="font-display text-3xl font-semibold tracking-[0.15em]">
             HARTWELL <span className="text-gold">&amp;</span> CO.
           </p>
-          <p className="mt-5 max-w-xs text-sm leading-relaxed text-cream/60">
+          <p className="mt-5 max-w-xs text-sm leading-relaxed text-alabaster/60">
             British tailors and makers of considered clothing. One address in
             Mayfair, one standard of craft, since 1934.
           </p>
           <div className="mt-8 flex items-center gap-4 text-gold/80">
             <HouseSeal className="h-12 w-12" />
-            <p className="text-[10px] uppercase tracking-[0.3em] text-cream/50">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-alabaster/50">
               No. 1 Mayfair · London
               <br />
               W1K 2QT
@@ -328,7 +331,7 @@ export function Footer() {
           <p className="mb-5 text-[10px] uppercase tracking-[0.35em] text-gold">
             Shop
           </p>
-          <ul className="space-y-3 text-sm text-cream/65">
+          <ul className="space-y-3 text-sm text-alabaster/65">
             <li>
               <Link href="/collection" className="transition-colors hover:text-gold">
                 The Collection
@@ -351,7 +354,7 @@ export function Footer() {
           <p className="mb-5 text-[10px] uppercase tracking-[0.35em] text-gold">
             The House
           </p>
-          <ul className="space-y-3 text-sm text-cream/65">
+          <ul className="space-y-3 text-sm text-alabaster/65">
             <li>
               <Link href="/about" className="transition-colors hover:text-gold">
                 Our Story
@@ -379,17 +382,17 @@ export function Footer() {
           <p className="mb-5 text-[10px] uppercase tracking-[0.35em] text-gold">
             The Letters
           </p>
-          <p className="mb-5 text-sm leading-relaxed text-cream/60">
+          <p className="mb-5 text-sm leading-relaxed text-alabaster/60">
             Six letters a year on cloth, craft and the seasons. Never more.
           </p>
-          <form onSubmit={subscribe} className="flex border-b border-cream/30 focus-within:border-gold">
+          <form onSubmit={subscribe} className="flex border-b border-alabaster/30 focus-within:border-gold">
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email address"
-              className="w-full bg-transparent py-3 text-sm text-cream placeholder:text-cream/35 focus:outline-none"
+              className="w-full bg-transparent py-3 text-sm text-alabaster placeholder:text-alabaster/35 focus:outline-none"
             />
             <button
               type="submit"
@@ -399,13 +402,13 @@ export function Footer() {
               <IconArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </button>
           </form>
-          <p className="mt-6 text-[10px] uppercase tracking-[0.25em] text-cream/35">
+          <p className="mt-6 text-[10px] uppercase tracking-[0.25em] text-alabaster/35">
             +44 (0)20 7946 0934 · support@hartwell-luxury.com
           </p>
         </div>
       </div>
-      <div className="border-t border-cream/10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 py-6 text-[10px] uppercase tracking-[0.25em] text-cream/35 sm:flex-row">
+      <div className="border-t border-alabaster/10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 py-6 text-[10px] uppercase tracking-[0.25em] text-alabaster/35 sm:flex-row">
           <p>© 1934 – 2026 Hartwell &amp; Co. All rights reserved.</p>
           <p>Tailored in England · Worn everywhere</p>
         </div>
@@ -426,7 +429,7 @@ export function ToastViewport() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="flex items-center gap-3 border border-gold/40 bg-charcoal/95 px-5 py-3 text-xs tracking-wide text-cream shadow-2xl backdrop-blur"
+            className="flex items-center gap-3 border border-gold/40 bg-charcoal/95 px-5 py-3 text-xs tracking-wide text-alabaster shadow-2xl backdrop-blur"
           >
             <IconCheck className="h-4 w-4 text-gold" />
             {t.message}
