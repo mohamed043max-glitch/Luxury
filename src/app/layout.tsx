@@ -1,50 +1,56 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
-import { StoreProvider } from "@/components/store";
-import { Header, Footer, ToastViewport } from "@/components/chrome";
-import { CartDrawer, SearchOverlay } from "@/components/drawers";
-import { ThemeInitScript } from "@/components/theme-toggle";
 
-const serif = Cormorant_Garamond({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-serif",
   display: "swap",
 });
 
-const sans = Jost({
+const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
-  variable: "--font-jost",
+  variable: "--font-sans",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Hartwell & Co. — British Tailoring, Mayfair, London",
+  title: "Hartwell & Co. — Bespoke British Menswear",
   description:
-    "Modern British menswear, crafted with heritage and worn with confidence. Suits, shirts, outerwear, leather goods, evening wear and the weekend edit — from No. 1 Mayfair since 1934.",
+    "Established 1934. Modern British menswear, crafted with heritage and worn with confidence. Tailoring, shirting, outerwear and leather goods from our Mayfair atelier.",
+  keywords: [
+    "bespoke tailoring",
+    "British menswear",
+    "luxury suits",
+    "Mayfair",
+    "Hartwell & Co",
+  ],
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${serif.variable} ${sans.variable}`}>
-      <body className="bg-cream font-sans text-ink antialiased">
-        <ThemeInitScript />
-        <StoreProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-          <CartDrawer />
-          <SearchOverlay />
-          <ToastViewport />
-        </StoreProvider>
+    <html lang="en" className={`${cormorant.variable} ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var theme = localStorage.getItem('hartwell.theme');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="bg-cream dark:bg-[#0e1014] text-ink dark:text-[#f3f0e8] antialiased font-sans">
+        {children}
       </body>
     </html>
   );
