@@ -387,8 +387,73 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useStore() {
+/**
+ * Inert, SSR-safe fallback used only when the provider is missing.
+ * It lets prerendering/static export complete instead of crashing the build,
+ * while still surfacing the mistake loudly during development.
+ */
+const FALLBACK_ORDER: Order = {
+  id: "HC-UNKNOWN",
+  items: [],
+  total: 0,
+  email: "",
+  name: "",
+  status: "Pending",
+  createdAt: new Date(0).toISOString(),
+  trackingNumber: "",
+};
+
+const FALLBACK_STORE: StoreContextValue = {
+  cart: [],
+  wishlist: [],
+  orders: [],
+  user: null,
+  theme: "light",
+  toggleTheme: () => {},
+  cartOpen: false,
+  menuOpen: false,
+  authMode: null,
+  checkoutOpen: false,
+  trackingOpen: false,
+  toasts: [],
+  addToCart: () => {},
+  removeFromCart: () => {},
+  updateQty: () => {},
+  clearCart: () => {},
+  toggleWishlist: () => {},
+  openCart: () => {},
+  closeCart: () => {},
+  openMenu: () => {},
+  closeMenu: () => {},
+  openAuth: () => {},
+  closeAuth: () => {},
+  openCheckout: () => {},
+  closeCheckout: () => {},
+  openTracking: () => {},
+  closeTracking: () => {},
+  login: () => false,
+  signup: () => false,
+  logout: () => {},
+  placeOrder: () => FALLBACK_ORDER,
+  trackOrder: () => null,
+  toast: () => {},
+  cartTotal: 0,
+  cartCount: 0,
+};
+
+export function useStore(): StoreContextValue {
   const ctx = useContext(StoreContext);
-  if (!ctx) throw new Error("useStore must be used within StoreProvider");
+
+  if (!ctx) {
+    // Fail loudly while developing so the missing provider is fixed,
+    // but never break a production prerender / static export.
+    if (process.env.NODE_ENV !== "production") {
+      throw new Error(
+        "useStore must be used within StoreProvider — mount it in src/app/layout.tsx."
+      );
+    }
+    return FALLBACK_STORE;
+  }
+
   return ctx;
 }

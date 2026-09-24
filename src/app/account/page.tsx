@@ -1,322 +1,335 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { useStore } from "@/components/store";
-import { PageIntro } from "@/components/intro";
-import {
-  IconCheck,
-  IconArrowRight,
-  IconBag,
-  IconHeart,
-  HouseSeal,
-} from "@/components/icons";
-import { CONCIERGE_EMAIL, CONCIERGE_PASSWORD } from "@/lib/utils";
-import { cx } from "@/lib/utils";
+import { useStore } from "@/lib/store";
+import { PRODUCTS, formatGBP } from "@/data/products";
 
-const EASE = [0.22, 1, 0.36, 1] as const;
+const PRESET = {
+  email: "support@hartwell-luxury.com",
+  password: "SecureLuxury1934!",
+};
 
 export default function AccountPage() {
-  const { user, signIn, signUp, signOut, notify, cartCount, wishlist } =
-    useStore();
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const {
+    user,
+    login,
+    signup,
+    logout,
+    orders,
+    wishlist,
+    cartCount,
+    openCart,
+    openTracking,
+    toast,
+  } = useStore();
 
-  const submit = async (e: React.FormEvent) => {
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+
+  const savedPieces = PRODUCTS.filter((p) => wishlist.includes(p.id));
+
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    if (!email.trim() || !password.trim() || (mode === "register" && !name.trim())) {
-      setError("Kindly complete every field.");
-      return;
-    }
-    setBusy(true);
-    try {
-      const err =
-        mode === "login"
-          ? await signIn(email.trim(), password)
-          : await signUp(name.trim(), email.trim(), password);
-      if (err) setError(err);
-      else
-        notify(
-          mode === "login"
-            ? "Welcome back to the House."
-            : "Your account has been opened. Welcome."
-        );
-    } finally {
-      setBusy(false);
+    const ok =
+      mode === "login"
+        ? login(email.trim(), password)
+        : signup(email.trim(), name.trim(), password);
+    if (ok) {
+      setEmail("");
+      setName("");
+      setPassword("");
     }
   };
 
-  if (user) {
-    return (
-      <>
-        <PageIntro
-          eyebrow="Client Account"
-          title="Welcome back,"
-          titleAccent={`${user.name.split(" ")[0]}.`}
-          sub="Your account holds your selection, your wishlist and the record of every order placed with the house."
-          crumb="Client Account"
-        />
-        <section className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: EASE }}
-            className="border border-line bg-cream-deep/60 p-8 sm:p-12"
-          >
-            <div className="flex flex-col items-start gap-8 sm:flex-row sm:items-center">
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-gold/60 bg-cream">
-                <span className="font-display text-3xl text-gold-deep">
-                  {user.name
-                    .split(" ")
-                    .map((w) => w[0])
-                    .slice(0, 2)
-                    .join("")}
-                </span>
-              </div>
-              <div className="flex-1">
-                <p className="text-[10px] uppercase tracking-[0.35em] text-gold-deep">
-                  Member of the House
-                </p>
-                <h2 className="mt-2 font-display text-3xl text-ink">{user.name}</h2>
-                <p className="mt-1 text-sm text-ink-soft">{user.email}</p>
-              </div>
-            </div>
-
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <Link
-                href="/orders"
-                className="group border border-line bg-cream p-5 transition-colors hover:border-gold"
-              >
-                <IconBag className="h-5 w-5 text-gold-deep" />
-                <p className="mt-3 text-[11px] uppercase tracking-[0.25em] text-ink">
-                  Your Orders
-                </p>
-                <p className="mt-1 text-xs text-mist">Track every parcel</p>
-              </Link>
-              <Link
-                href="/collection"
-                className="group border border-line bg-cream p-5 transition-colors hover:border-gold"
-              >
-                <IconArrowRight className="h-5 w-5 text-gold-deep" />
-                <p className="mt-3 text-[11px] uppercase tracking-[0.25em] text-ink">
-                  Continue Shopping
-                </p>
-                <p className="mt-1 text-xs text-mist">
-                  {cartCount} in your selection
-                </p>
-              </Link>
-              <div className="border border-line bg-cream p-5">
-                <IconHeart className="h-5 w-5 text-gold-deep" />
-                <p className="mt-3 text-[11px] uppercase tracking-[0.25em] text-ink">
-                  Wishlist
-                </p>
-                <p className="mt-1 text-xs text-mist">
-                  {wishlist.length} piece{wishlist.length === 1 ? "" : "s"} saved
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                signOut();
-                notify("You have been signed out. The door stays open.");
-              }}
-              className="mt-10 inline-flex items-center gap-3 border border-ink/25 px-8 py-3.5 text-[11px] uppercase tracking-[0.3em] text-ink transition-all duration-300 hover:border-gold hover:bg-gold"
-            >
-              Sign Out
-            </button>
-          </motion.div>
-        </section>
-      </>
-    );
-  }
-
   return (
-    <>
-      <PageIntro
-        eyebrow="Client Account"
-        title="The House,"
-        titleAccent="by name."
-        sub="Sign in to follow your orders, or open an account and let the house remember your sizes."
-        crumb="Client Account"
-      />
-      <section className="mx-auto grid max-w-5xl gap-10 px-6 py-16 sm:py-20 lg:grid-cols-[1fr_320px]">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: EASE }}
-          className="border border-line bg-cream-deep/60 p-8 sm:p-12"
-        >
-          <div className="mb-9 flex border border-line">
-            {(["login", "register"] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => {
-                  setMode(m);
-                  setError(null);
-                }}
-                className={cx(
-                  "flex-1 py-3.5 text-[11px] uppercase tracking-[0.3em] transition-colors duration-300",
-                  mode === m
-                    ? "bg-ink text-cream"
-                    : "text-ink-soft hover:text-ink"
+    <div className="pt-32 sm:pt-36 pb-24 bg-cream dark:bg-[#0e1014] min-h-screen">
+      <div className="max-w-[1200px] mx-auto px-5 sm:px-8">
+        {/* Page Header */}
+        <div className="text-center mb-14">
+          <div className="flex items-center justify-center gap-3 text-[10px] tracking-[0.5em] uppercase text-gold-deep dark:text-gold mb-4 font-medium">
+            <span className="w-8 h-px bg-gold" />
+            <span>Client Services</span>
+            <span className="w-8 h-px bg-gold" />
+          </div>
+          <h1 className="font-serif text-4xl sm:text-6xl text-ink dark:text-[#fbf9f5] leading-tight">
+            {user ? `Welcome, ${user.name.split(" ")[0]}.` : "Client Account"}
+          </h1>
+          <p className="mt-4 text-sm sm:text-base text-graphite dark:text-[#b0b4be] font-light max-w-xl mx-auto">
+            {user
+              ? "Your pieces, your selections and the record of every order placed with the house."
+              : "Sign in to follow your orders, keep your wishlist, and let the house remember your sizes."}
+          </p>
+        </div>
+
+        {user ? (
+          /* ---------------- SIGNED IN ---------------- */
+          <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+            <div className="space-y-8">
+              {/* Account card */}
+              <div className="border border-gold/30 bg-white/60 dark:bg-[#151820] p-8">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                  <div className="w-20 h-20 shrink-0 rounded-full border border-gold/50 bg-cream dark:bg-[#0e1014] flex items-center justify-center">
+                    <span className="font-serif text-3xl text-gold-deep dark:text-gold">
+                      {user.name
+                        .split(" ")
+                        .map((w) => w[0])
+                        .slice(0, 2)
+                        .join("")}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] tracking-[0.35em] uppercase text-gold-deep dark:text-gold font-medium">
+                      Member of the House
+                    </div>
+                    <div className="mt-2 font-serif text-3xl text-ink dark:text-[#fbf9f5] truncate">
+                      {user.name}
+                    </div>
+                    <div className="mt-1 text-sm text-graphite dark:text-[#b0b4be] truncate">
+                      {user.email}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                  <button
+                    onClick={openTracking}
+                    className="border border-gold/30 bg-cream dark:bg-[#0e1014] p-5 text-left hover:border-gold transition-colors"
+                  >
+                    <div className="font-serif text-3xl text-gold-deep dark:text-gold">
+                      {orders.length}
+                    </div>
+                    <div className="mt-1 text-[10px] tracking-[0.25em] uppercase text-ink dark:text-[#f3f0e8]">
+                      Orders Placed
+                    </div>
+                  </button>
+                  <button
+                    onClick={openCart}
+                    className="border border-gold/30 bg-cream dark:bg-[#0e1014] p-5 text-left hover:border-gold transition-colors"
+                  >
+                    <div className="font-serif text-3xl text-gold-deep dark:text-gold">
+                      {cartCount}
+                    </div>
+                    <div className="mt-1 text-[10px] tracking-[0.25em] uppercase text-ink dark:text-[#f3f0e8]">
+                      In Your Selection
+                    </div>
+                  </button>
+                  <div className="border border-gold/30 bg-cream dark:bg-[#0e1014] p-5">
+                    <div className="font-serif text-3xl text-gold-deep dark:text-gold">
+                      {wishlist.length}
+                    </div>
+                    <div className="mt-1 text-[10px] tracking-[0.25em] uppercase text-ink dark:text-[#f3f0e8]">
+                      Wishlist Pieces
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    logout();
+                    toast("You have been signed out.", "info");
+                  }}
+                  className="mt-8 inline-flex items-center justify-center border border-ink/25 dark:border-cream/30 px-8 py-3.5 text-[11px] tracking-[0.3em] uppercase text-ink dark:text-[#f3f0e8] hover:border-gold hover:bg-gold hover:text-ink transition-all"
+                >
+                  Sign Out
+                </button>
+              </div>
+
+              {/* Order history */}
+              <div className="border border-gold/30 bg-white/60 dark:bg-[#151820] p-8">
+                <div className="text-[10px] tracking-[0.35em] uppercase text-gold-deep dark:text-gold font-medium mb-6">
+                  Order Ledger
+                </div>
+                {orders.length === 0 ? (
+                  <p className="text-sm text-graphite dark:text-[#b0b4be] font-light">
+                    No orders yet. Your first commission will appear here with its
+                    reference and tracking number.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-gold/20">
+                    {orders.map((o) => (
+                      <div
+                        key={o.id}
+                        className="flex flex-wrap items-center justify-between gap-3 py-4"
+                      >
+                        <div>
+                          <div className="font-serif text-lg text-ink dark:text-[#fbf9f5]">
+                            {o.id}
+                          </div>
+                          <div className="text-[10px] tracking-[0.2em] uppercase text-graphite dark:text-[#b0b4be]">
+                            {o.items.length} piece{o.items.length === 1 ? "" : "s"} ·{" "}
+                            {o.status}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-serif text-xl text-ink dark:text-[#fbf9f5]">
+                            {formatGBP(o.total)}
+                          </div>
+                          <button
+                            onClick={openTracking}
+                            className="text-[10px] tracking-[0.25em] uppercase text-gold-deep dark:text-gold hover:underline"
+                          >
+                            Track
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
-              >
-                {m === "login" ? "Sign In" : "Create Account"}
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={submit} className="space-y-6">
-            {mode === "register" && (
-              <Field
-                label="Full Name"
-                type="text"
-                placeholder="Edward Hartwell"
-                value={name}
-                onChange={setName}
-              />
-            )}
-            <Field
-              label="Email Address"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={setEmail}
-            />
-            <Field
-              label="Password"
-              type="password"
-              placeholder="••••••••••••"
-              value={password}
-              onChange={setPassword}
-            />
-
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="border border-gold/50 bg-gold/10 px-4 py-3 text-sm text-ink"
-              >
-                {error}
-              </motion.p>
-            )}
-
-            <button
-              type="submit"
-              disabled={busy}
-              className="btn-sheen flex w-full items-center justify-center gap-3 bg-gold py-4 text-[11px] font-medium uppercase tracking-[0.3em] text-charcoal transition-colors duration-300 hover:bg-gold-deep disabled:opacity-60"
-            >
-              {busy
-                ? "Consulting the ledger…"
-                : mode === "login"
-                  ? "Sign In"
-                  : "Create My Account"}
-              <IconArrowRight className="h-4 w-4" />
-            </button>
-          </form>
-        </motion.div>
-
-        <motion.aside
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
-          className="flex flex-col gap-6"
-        >
-          <div className="border border-line bg-cream p-7">
-            <div className="flex items-center gap-3 text-gold-deep">
-              <HouseSeal className="h-10 w-10" />
-              <p className="text-[10px] uppercase tracking-[0.3em]">
-                Concierge Access
-              </p>
+              </div>
             </div>
-            <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-              For a private tour of the account system, sign in with the
-              house concierge account:
-            </p>
-            <dl className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
-              <div className="flex justify-between gap-3">
-                <dt className="text-mist">Email</dt>
-                <dd className="text-right text-ink">{CONCIERGE_EMAIL}</dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-mist">Password</dt>
-                <dd className="text-right font-medium text-ink">
-                  {CONCIERGE_PASSWORD}
-                </dd>
-              </div>
-            </dl>
-            <button
-              onClick={() => {
-                setMode("login");
-                setEmail(CONCIERGE_EMAIL);
-                setPassword(CONCIERGE_PASSWORD);
-                setError(null);
-                notify("Concierge details entered — simply sign in.");
-              }}
-              className="mt-5 flex w-full items-center justify-center gap-2 border border-gold/60 py-3 text-[10px] uppercase tracking-[0.3em] text-gold-deep transition-colors hover:bg-gold hover:text-charcoal"
-            >
-              <IconCheck className="h-3.5 w-3.5" />
-              Use Concierge Details
-            </button>
-          </div>
-          <div className="border border-line bg-cream-deep p-7">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-gold-deep">
-              Why an account
-            </p>
-            <ul className="mt-4 space-y-3 text-sm text-ink-soft">
-              <li className="flex gap-3">
-                <span className="mt-[7px] h-px w-4 shrink-0 bg-gold" />
-                Your sizes remembered at every fitting
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-[7px] h-px w-4 shrink-0 bg-gold" />
-                One place for every order and delivery note
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-[7px] h-px w-4 shrink-0 bg-gold" />
-                Your wishlist, kept safe on the house ledger
-              </li>
-            </ul>
-          </div>
-        </motion.aside>
-      </section>
-    </>
-  );
-}
 
-function Field({
-  label,
-  type,
-  placeholder,
-  value,
-  onChange,
-}: {
-  label: string;
-  type: string;
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-[10px] uppercase tracking-[0.3em] text-ink">
-        {label}
-      </span>
-      <input
-        type={type}
-        required
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full border border-line bg-cream px-4 py-3.5 text-sm text-ink placeholder:text-mist/70 transition-colors focus:border-gold focus:outline-none"
-      />
-    </label>
+            {/* Wishlist */}
+            <aside className="border border-gold/30 bg-white/60 dark:bg-[#151820] p-8 h-fit">
+              <div className="text-[10px] tracking-[0.35em] uppercase text-gold-deep dark:text-gold font-medium mb-6">
+                Your Wishlist
+              </div>
+              {savedPieces.length === 0 ? (
+                <p className="text-sm text-graphite dark:text-[#b0b4be] font-light">
+                  Nothing saved yet. Tap the heart on any piece to keep it here.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {savedPieces.map((p) => (
+                    <div key={p.id} className="flex items-center gap-4">
+                      <div className="w-14 h-[72px] shrink-0 overflow-hidden bg-cream-deep dark:bg-[#0e1014]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-serif text-base text-ink dark:text-[#fbf9f5] truncate">
+                          {p.name}
+                        </div>
+                        <div className="text-[10px] tracking-[0.2em] uppercase text-graphite dark:text-[#b0b4be]">
+                          {p.category}
+                        </div>
+                      </div>
+                      <div className="text-sm text-ink dark:text-gold">
+                        {formatGBP(p.price)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </aside>
+          </div>
+        ) : (
+          /* ---------------- SIGNED OUT ---------------- */
+          <div className="grid gap-8 lg:grid-cols-[1fr_400px] max-w-5xl mx-auto">
+            <div className="border border-gold/30 bg-white/60 dark:bg-[#151820] p-8 sm:p-10">
+              {/* Mode switch */}
+              <div className="flex border border-gold/30 mb-8">
+                {(["login", "signup"] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={`flex-1 py-3.5 text-[11px] tracking-[0.3em] uppercase transition-colors ${
+                      mode === m
+                        ? "bg-ink dark:bg-gold text-cream dark:text-ink"
+                        : "text-graphite dark:text-[#b0b4be] hover:text-ink dark:hover:text-gold"
+                    }`}
+                  >
+                    {m === "login" ? "Sign In" : "Create Account"}
+                  </button>
+                ))}
+              </div>
+
+              <form onSubmit={submit} className="space-y-6">
+                {mode === "signup" && (
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] tracking-[0.3em] uppercase text-ink dark:text-[#f3f0e8]">
+                      Full Name
+                    </span>
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      placeholder="Edward Hartwell"
+                      className="w-full border border-gold/40 bg-cream dark:bg-[#0e1014] px-4 py-3.5 text-sm text-ink dark:text-[#f3f0e8] focus:border-gold focus:outline-none"
+                    />
+                  </label>
+                )}
+
+                <label className="block">
+                  <span className="mb-2 block text-[10px] tracking-[0.3em] uppercase text-ink dark:text-[#f3f0e8]">
+                    Email Address
+                  </span>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="you@example.com"
+                    className="w-full border border-gold/40 bg-cream dark:bg-[#0e1014] px-4 py-3.5 text-sm text-ink dark:text-[#f3f0e8] focus:border-gold focus:outline-none"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-[10px] tracking-[0.3em] uppercase text-ink dark:text-[#f3f0e8]">
+                    Password
+                  </span>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="w-full border border-gold/40 bg-cream dark:bg-[#0e1014] px-4 py-3.5 text-sm text-ink dark:text-[#f3f0e8] focus:border-gold focus:outline-none"
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-gold-deep via-gold to-gold-deep py-4 text-[11px] font-semibold tracking-[0.3em] uppercase text-[#121418] hover:brightness-110 transition"
+                >
+                  {mode === "login" ? "Sign In" : "Create My Account"}
+                </button>
+              </form>
+            </div>
+
+            {/* Concierge credentials */}
+            <aside className="border border-gold/30 bg-white/60 dark:bg-[#151820] p-8 h-fit">
+              <div className="text-[10px] tracking-[0.35em] uppercase text-gold-deep dark:text-gold font-medium mb-4">
+                Demo Credentials
+              </div>
+              <p className="text-sm text-graphite dark:text-[#b0b4be] font-light leading-relaxed">
+                Use the house concierge account to explore the full client area.
+              </p>
+              <div className="mt-5 space-y-2 border-t border-gold/20 pt-5 text-sm">
+                <div className="flex justify-between gap-3">
+                  <span className="text-graphite dark:text-[#b0b4be]">Email</span>
+                  <span className="text-right text-ink dark:text-[#f3f0e8] break-all">
+                    {PRESET.email}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-graphite dark:text-[#b0b4be]">Password</span>
+                  <span className="text-right font-medium text-ink dark:text-[#f3f0e8]">
+                    {PRESET.password}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("login");
+                  setEmail(PRESET.email);
+                  setPassword(PRESET.password);
+                  toast("Concierge details filled in — press Sign In.", "info");
+                }}
+                className="mt-5 w-full border border-gold/60 py-3 text-[10px] tracking-[0.3em] uppercase text-gold-deep dark:text-gold hover:bg-gold hover:text-ink transition-colors"
+              >
+                Use Concierge Details
+              </button>
+            </aside>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
