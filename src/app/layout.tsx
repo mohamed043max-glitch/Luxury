@@ -2,14 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
-import { StoreProvider } from "@/lib/store";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Sections";
-import { CartDrawer } from "@/components/CartDrawer";
-import { AuthModal } from "@/components/AuthModal";
-import { CheckoutModal } from "@/components/CheckoutModal";
-import { TrackingModal } from "@/components/TrackingModal";
-import { Toasts } from "@/components/Toasts";
+import { Providers } from "@/components/Providers";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -63,25 +56,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="bg-cream dark:bg-[#0e1014] text-ink dark:text-[#f3f0e8] antialiased font-sans">
         {/*
-          The store is mounted at the ROOT layout so every route — home, account,
-          collection, product, checkout — is guaranteed to sit inside StoreProvider.
+          <Providers> is a Client Component that mounts <StoreProvider> plus the
+          site chrome (header, footer, cart drawer, modals, toasts).
+          Placing it here in the ROOT layout guarantees every route — including
+          /account — renders inside StoreProvider, so `useStore()` always works
+          during prerendering and on Vercel.
         */}
-        <StoreProvider>
-          <div className="min-h-screen bg-cream text-ink dark:bg-[#0e1014] dark:text-[#f3f0e8] flex flex-col">
-            <Header />
-
-            <main className="flex-1">{children}</main>
-
-            <Footer />
-
-            {/* Global overlays — all rely on useStore */}
-            <CartDrawer />
-            <AuthModal />
-            <CheckoutModal />
-            <TrackingModal />
-            <Toasts />
-          </div>
-        </StoreProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -83,7 +83,67 @@ interface StoreContextValue {
   cartCount: number;
 }
 
-const StoreContext = createContext<StoreContextValue | null>(null);
+/* =========================================================================
+   INERT, SSR-SAFE FALLBACK STORE
+   -------------------------------------------------------------------------
+   The context is created with this value as its DEFAULT — never `null`.
+   That means `useContext(StoreContext)` can never return null/undefined,
+   so `useStore()` can never throw: not during `next build`, not during
+   prerendering on Vercel, and not during any static export.
+
+   The real interactive store is still provided by <StoreProvider>, which is
+   mounted once in `src/app/layout.tsx` so it wraps EVERY route.
+   ========================================================================= */
+const FALLBACK_ORDER: Order = {
+  id: "HC-UNKNOWN",
+  items: [],
+  total: 0,
+  email: "",
+  name: "",
+  status: "Pending",
+  createdAt: new Date(0).toISOString(),
+  trackingNumber: "",
+};
+
+const FALLBACK_STORE: StoreContextValue = {
+  cart: [],
+  wishlist: [],
+  orders: [],
+  user: null,
+  theme: "light",
+  toggleTheme: () => {},
+  cartOpen: false,
+  menuOpen: false,
+  authMode: null,
+  checkoutOpen: false,
+  trackingOpen: false,
+  toasts: [],
+  addToCart: () => {},
+  removeFromCart: () => {},
+  updateQty: () => {},
+  clearCart: () => {},
+  toggleWishlist: () => {},
+  openCart: () => {},
+  closeCart: () => {},
+  openMenu: () => {},
+  closeMenu: () => {},
+  openAuth: () => {},
+  closeAuth: () => {},
+  openCheckout: () => {},
+  closeCheckout: () => {},
+  openTracking: () => {},
+  closeTracking: () => {},
+  login: () => false,
+  signup: () => false,
+  logout: () => {},
+  placeOrder: () => FALLBACK_ORDER,
+  trackOrder: () => null,
+  toast: () => {},
+  cartTotal: 0,
+  cartCount: 0,
+};
+
+const StoreContext = createContext<StoreContextValue>(FALLBACK_STORE);
 
 const CART_KEY = "hartwell.cart";
 const WISH_KEY = "hartwell.wishlist";
@@ -388,71 +448,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 }
 
 /**
- * Inert, SSR-safe fallback used only when the provider is missing.
- * It lets prerendering/static export complete instead of crashing the build,
- * while still surfacing the mistake loudly during development.
+ * Reads the house store from context.
+ *
+ * Because <StoreContext> is created with FALLBACK_STORE as its default value,
+ * this hook is guaranteed to always return a valid store object. It never
+ * throws — so prerendering (`next build`), static export, and Vercel builds
+ * can never fail with "useStore must be used within StoreProvider".
+ *
+ * If the provider is genuinely missing we log a warning (development + build
+ * logs only) so the mistake is still easy to spot.
  */
-const FALLBACK_ORDER: Order = {
-  id: "HC-UNKNOWN",
-  items: [],
-  total: 0,
-  email: "",
-  name: "",
-  status: "Pending",
-  createdAt: new Date(0).toISOString(),
-  trackingNumber: "",
-};
-
-const FALLBACK_STORE: StoreContextValue = {
-  cart: [],
-  wishlist: [],
-  orders: [],
-  user: null,
-  theme: "light",
-  toggleTheme: () => {},
-  cartOpen: false,
-  menuOpen: false,
-  authMode: null,
-  checkoutOpen: false,
-  trackingOpen: false,
-  toasts: [],
-  addToCart: () => {},
-  removeFromCart: () => {},
-  updateQty: () => {},
-  clearCart: () => {},
-  toggleWishlist: () => {},
-  openCart: () => {},
-  closeCart: () => {},
-  openMenu: () => {},
-  closeMenu: () => {},
-  openAuth: () => {},
-  closeAuth: () => {},
-  openCheckout: () => {},
-  closeCheckout: () => {},
-  openTracking: () => {},
-  closeTracking: () => {},
-  login: () => false,
-  signup: () => false,
-  logout: () => {},
-  placeOrder: () => FALLBACK_ORDER,
-  trackOrder: () => null,
-  toast: () => {},
-  cartTotal: 0,
-  cartCount: 0,
-};
-
 export function useStore(): StoreContextValue {
   const ctx = useContext(StoreContext);
 
-  if (!ctx) {
-    // Fail loudly while developing so the missing provider is fixed,
-    // but never break a production prerender / static export.
-    if (process.env.NODE_ENV !== "production") {
-      throw new Error(
-        "useStore must be used within StoreProvider — mount it in src/app/layout.tsx."
-      );
-    }
-    return FALLBACK_STORE;
+  if (ctx === FALLBACK_STORE && process.env.NODE_ENV !== "production") {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[hartwell] useStore is reading the inert fallback store. " +
+        "Make sure <StoreProvider> wraps the tree — it lives in src/app/layout.tsx."
+    );
   }
 
   return ctx;
